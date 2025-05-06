@@ -7,7 +7,7 @@ import miio.device
 import miio.devicefactory
 import miio.miioprotocol
 from sqlalchemy import delete, or_
-from app.database import session_scope, row2dict, db
+from app.database import session_scope, row2dict, db, get_now_to_utc
 from app.authentication.handlers import handle_admin_required
 from app.core.main.BasePlugin import BasePlugin
 from plugins.xiio.models.xiioDevices import XiioDevices
@@ -171,7 +171,7 @@ class xiio(BasePlugin):
 
                 for dev in devices:
                     if dev.updated:
-                        diff = datetime.datetime.now() - dev.updated
+                        diff = get_now_to_utc() - dev.updated
                         period = dev.update_period if dev.update_period else 5
                         if diff < datetime.timedelta(seconds=period):
                             continue
@@ -203,7 +203,7 @@ class xiio(BasePlugin):
                         
                         for key in status.data.keys():
                             self.setProperty(session, dev, key, key, status.data[key])
-                        dev.updated = datetime.datetime.now()
+                        dev.updated = get_now_to_utc()
                         session.commit()
                     except Exception as ex:
                         self.logger.debug(ex)
@@ -230,7 +230,7 @@ class xiio(BasePlugin):
                 value = 1
             if value == 'off':
                 value = 0
-            prop.updated = datetime.datetime.now()
+            prop.updated = get_now_to_utc()
             session.commit()
             if prop.linked_object:
                 if prop.linked_method:
